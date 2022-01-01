@@ -27,7 +27,7 @@ Would you like to contribute but not sure what about? We’re happy to give idea
 
 * Did you clean up some messy code, use R to answer a burning question you had, or explore a cool function? Write a blog post on it!
 * Did you write a research paper? Write a short-form blog post showcasing your analysis and results!
-* Did you create a cool package? Write a vignette showcasing what your package helps solve!
+* Did you create or find a cool package? Write a [vignette](https://r-pkgs.org/vignettes.html) showcasing what the package helps solve!
 * Are you writing a book on R? Share a short version of what your book dives into!
 
 ### Code of Conduct
