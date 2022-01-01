@@ -1,0 +1,19 @@
+---
+title: "R Views Community Post Submission"
+author: "Your Name"
+date: "The Date You Hope To Post"
+summary: "A brief summary of your post here"
+output: html_document
+---
+
+Thank you for writing a post for R Views! Please find the instructions below.
+
+## Instructions
+
+* Update the title, author, date, and summary fields above.
+* Save any additional files in the directory created by the R Markdown template.
+* Make sure that your post is reproducible! Restart R, clear your work space, and knit the R Markdown document. Everything should run smoothly.
+
+## Write post
+
+Write the post here. Remember to delete the instructions!
