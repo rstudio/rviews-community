@@ -15,7 +15,7 @@ This outlines how to submit a post to R Views Community. Would you rather just s
 If you are using R Studio:
 
 * Build the package by running Ctrl + Shift + B / Command + Shift + B.
-* Open a document by going to `File` > `New File` > `R Markdown`. Select `From Template` from the dialogue box menu and then `R Views Community Post Submission`. A custom file for R Views will appear and you can write your post there.
+* Open a document by going to `File` > `New File` > `R Markdown`. Select `From Template` from the dialogue box menu and then `R Views Community Post Submission`. A custom file for R Views will appear and you can write your post there. Add any files/data that you may need in the folder that is created.
 
 ## Push up changes
 
