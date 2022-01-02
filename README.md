@@ -7,7 +7,7 @@ R Views is a place to:
 * Read considered opinions about topics of interest to the R Community
 * See what is happening at conferences and user group meetings around the world
 * Learn about new R packages
-* Explore how R is used in various areas of statistics or data science
+* Explore how R users apply R in various areas of statistics or data science
 * Understand how RStudio tools can contribute to enhancing your R experience.
 
 ## Contribute to R Views
@@ -25,7 +25,7 @@ Would you like to contribute but not sure what about? We’re happy to give idea
 
 * Did you clean up some messy code, use R to answer a burning question you had, or explore a cool function? Write a blog post on it!
 * Did you write a research paper? Write a short-form blog post showcasing your analysis and results!
-* Did you create or find a cool package? Write a [vignette](https://r-pkgs.org/vignettes.html) showcasing what the package helps solve!
+* Did you create or find a package that you want others to know about? Write a [vignette](https://r-pkgs.org/vignettes.html) showcasing what the package helps solve!
 * Are you writing a book on R? Share a short version of what your book dives into!
 
 ### Code of Conduct

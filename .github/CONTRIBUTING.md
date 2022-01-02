@@ -24,7 +24,7 @@ Once your post is ready for review:
 
 ## Review and finalize
 
-After you've submitted a post, we'll be notified to take a look. We m ay make small edits (grammar, spelling). For any large edits or ideas for the post, we'll write in comments for your review.
+After you've submitted a post, we'll be notified to take a look. We may make small edits (grammar, spelling). For any large edits or ideas for the post, we'll write in comments for your review.
 
 ## Publish the post
 
