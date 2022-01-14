@@ -2,9 +2,22 @@
 
 Thank you for submitting a pull request! Please add the following information:
 
-- Any info about the post you'd like to share?
-- Do you have a desired release date and time?
-- Could you please provide us a 1-2 sentence bio to introduce you in the post?
-- When publicizing the post, would you like us to tag your Twitter and/or LinkedIn handles? If so, what are they?
+## About You
 
-We'll review the submission and get back to you within 72 hours!
+Tell us a bit about you! Please share 1-2 sentences on your background, the motivation for the post, and any work/information you want to highlight. If you have social media handles on Twitter or LinkedIn, please share those as well.
+
+## Audience
+
+Let us know the intended audience. Are you hoping for broad readership or targeting those with a particular expertise?
+
+## Timeline
+
+Is there a timeline that you would like us to know about?
+
+## Checklist
+
+Check off each of these statements:
+
+* [ ] I have read the [README](https://github.com/rstudio/rviews-community).
+* [ ] I have read the [Code of Conduct](https://www.contributor-covenant.org/version/2/0/code_of_conduct/).
+* [ ] I have read the contributing guide(https://github.com/rstudio/rviews-community/blob/main/.github/CONTRIBUTING.md).
