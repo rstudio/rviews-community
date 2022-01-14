@@ -21,3 +21,4 @@ Check off each of these statements:
 * [ ] I have read the [README](https://github.com/rstudio/rviews-community).
 * [ ] I have read the [Code of Conduct](https://www.contributor-covenant.org/version/2/0/code_of_conduct/).
 * [ ] I have read the contributing guide(https://github.com/rstudio/rviews-community/blob/main/.github/CONTRIBUTING.md).
+* [ ] I have knitted my R Markdown file and it (1) knits and (2) looks like I expect.
