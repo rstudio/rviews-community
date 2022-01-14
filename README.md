@@ -16,14 +16,14 @@ We hope that R Views will attract other voices from around the R Community, incl
 
 If you would like to contribute R-related topics, news, commentary, or examples, please follow this process for entering a post for consideration.
 
-* **If you’re comfortable with Github and R Markdown, check out **[our contributing guide](https://github.com/rstudio/rviews-community/blob/main/.github/CONTRIBUTING.md)** to submit a post for consideration.
+* **If you’re comfortable with Github and R Markdown, check out** [our contributing guide](https://github.com/rstudio/rviews-community/blob/main/.github/CONTRIBUTING.md)** to submit a post for consideration.
 * **If you’d like us to handle Github/R Markdown,** [file an issue](https://github.com/rstudio/rviews-community/issues) with your post or idea.
 
 ### Process for Contributing
 
 * **Submit a post/idea:** Start the process either via a [pull request](https://github.com/rstudio/rviews-community/blob/main/.github/CONTRIBUTING.md) or an [issue](https://github.com/rstudio/rviews-community/issues).
 * **Preliminary review:** Within two weeks, the R Views editors will review your submission and let you know the next steps.
-  * We may let you know that the post is ready almost as-in, provide feedback for revisions to post on R Views, or recommend another avenue for your post if R Views is not the best one.
+  * We may let you know that the post is ready almost as-in, provide feedback for revisions to post on R Views, or recommend another avenue for your post if R Views is not the right one.
 * **Revisions:** We work together to make revisions on the post.
   * We will make these revisions on the Github pull request.
 * **Finalization:** We both confirm that the post is finalized and coordinate a timeline for release.
@@ -34,9 +34,9 @@ If you would like to contribute R-related topics, news, commentary, or examples,
 
 Would you like to contribute but not sure what about? We’re happy to give ideas!
 
-* Did you clean up some messy code, use R to answer a burning question you had, or explore a cool function? Write a blog post on it!
-* Did you write a research paper? Write a short-form blog post showcasing your analysis and results!
-* Do you want to elaborate on a favorite R package?
+* Did you clean up some messy code, use R to answer a burning question you had, or explore a cool function? Write a blog post on it.
+* Did you write a research paper? Write a short-form blog post showcasing your analysis and results.
+* Do have a favorite R package? Elaborate on it in a walkthrough.
 * Are you writing a book on R? Share a short version of what your book dives into.
 
 ## FAQs
