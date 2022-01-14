@@ -12,12 +12,23 @@ R Views is a place to:
 
 ## Contribute to R Views
 
-We hope that R Views will attract other voices from around the R Community, including yourself! 
+We hope that R Views will attract other voices from around the R Community, including yourself! We're always looking for high-quality, original work to demonstrate the power of R.
 
-If you have something to say on an R-related topic, news, commentary, or an example of using R that you would like to share with the R Community, please consider contributing a post to R Views.
+If you would like to contribute R-related topics, news, commentary, or examples, please follow this process for entering a post for consideration.
 
-* **If you’re comfortable with Github and R Markdown, check out **[our contributing guide](https://github.com/rstudio/rviews-community/blob/main/.github/CONTRIBUTING.md)** to submit a post.**
-* **If you’d like us to handle Github/R Markdown, [file an issue](https://github.com/rstudio/rviews-community/issues) with your topic/idea!**
+* **If you’re comfortable with Github and R Markdown, check out **[our contributing guide](https://github.com/rstudio/rviews-community/blob/main/.github/CONTRIBUTING.md)** to submit a post for consideration.
+* **If you’d like us to handle Github/R Markdown,** [file an issue](https://github.com/rstudio/rviews-community/issues) with your post or idea.
+
+### Process for Contributing
+
+* **Submit a post/idea:** Start the process either via a [pull request](https://github.com/rstudio/rviews-community/blob/main/.github/CONTRIBUTING.md) or an [issue](https://github.com/rstudio/rviews-community/issues).
+* **Preliminary review:** Within two weeks, the R Views editors will review your submission and let you know the next steps.
+  * We may let you know that the post is ready almost as-in, provide feedback for revisions to post on R Views, or recommend another avenue for your post if R Views is not the best one.
+* **Revisions:** We work together to make revisions on the post.
+  * We will make these revisions on the Github pull request.
+* **Finalization:** We both confirm that the post is finalized and coordinate a timeline for release.
+* **Publication:** We release the post based on the timeline and coordinate social media efforts to publicize the post.
+  * We will tweet from the RStudio [Twitter](https://twitter.com/rstudio) account and [LinkedIn](https://www.linkedin.com/company/rstudio-pbc/) account.
 
 ### Need ideas?
 
@@ -25,13 +36,23 @@ Would you like to contribute but not sure what about? We’re happy to give idea
 
 * Did you clean up some messy code, use R to answer a burning question you had, or explore a cool function? Write a blog post on it!
 * Did you write a research paper? Write a short-form blog post showcasing your analysis and results!
-* Did you create or find a package that you want others to know about? Write a [vignette](https://r-pkgs.org/vignettes.html) showcasing what the package helps solve!
-* Are you writing a book on R? Share a short version of what your book dives into!
+* Do you want to elaborate on a favorite R package?
+* Are you writing a book on R? Share a short version of what your book dives into.
 
-### Code of Conduct
+## FAQs
+
+* Can I cross-post my blog post?
+
+Yes, you can cross-post your blog post as long as it is published at the same time as the one on R Views.
+
+* Do you edit posts from the past?
+
+Once published, we do not edit posts from the past except for typos or broken links.
+
+## Code of Conduct
 
 Please note that the rviews-community project is released with a [Contributor Code of Conduct](https://contributor-covenant.org/version/2/0/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.
 
-### License
+## License
 
 Except where otherwise noted, content on R Views Community and the R Views blog is licensed under the [CC-BY license](https://creativecommons.org/licenses/by/4.0/).
