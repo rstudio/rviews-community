@@ -16,7 +16,7 @@ We hope that R Views will attract other voices from around the R Community, incl
 
 If you would like to contribute R-related topics, news, commentary, or examples, please follow this process for entering a post for consideration.
 
-* **If you’re comfortable with Github and R Markdown, check out** [our contributing guide](https://github.com/rstudio/rviews-community/blob/main/.github/CONTRIBUTING.md)** to submit a post for consideration.
+* **If you’re comfortable with Github and R Markdown,** read [our contributing guide](https://github.com/rstudio/rviews-community/blob/main/.github/CONTRIBUTING.md) to submit a post for consideration.
 * **If you’d like us to handle Github/R Markdown,** [file an issue](https://github.com/rstudio/rviews-community/issues) with your post or idea.
 
 ### Process for Contributing
