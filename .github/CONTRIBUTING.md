@@ -1,14 +1,11 @@
 # Contributing to R Views Community
 
-This outlines how to submit a post to R Views Community. Would you rather just submit an idea first? File it as an [issue](https://github.com/rstudio/rviews-community/issues).
+This outlines how to submit a post for consideration to R Views Community. Would you rather just submit an idea first? File it as an [issue](https://github.com/rstudio/rviews-community/issues).
 
 ## Start a pull request
 
 *   Fork the package and clone onto your computer. If you haven't done this before, we recommend using `usethis::create_from_github("rstudio/rviews-community", fork = TRUE)`.
-
-*   Install all development dependencies with `devtools::install_dev_deps()`, and then make sure the package passes R CMD check by running `devtools::check()`. 
-    If R CMD check doesn't pass cleanly, it's a good idea to ask for help before continuing. 
-*   Create a Git branch for your pull request (PR). We recommend using `usethis::pr_init("brief-description-of-change")`.
+*   Create a Git branch for your pull request (PR). We recommend using `usethis::pr_init("title-of-post")`.
 
 ## Write a new post
 
@@ -19,16 +16,12 @@ If you are using R Studio:
 
 ## Push up changes
 
-Once your post is ready for review:
+Once your post is ready for preliminary review:
 
 *   Make your changes, commit to git, and then create a PR by running `usethis::pr_push()`, and following the prompts in your browser.
     The title of your PR should briefly describe the post.
     The body of your PR should let us know what your post is about and any other relevant information.
 
-## Review and finalize
+## Start preliminary review by R Views team
 
-After you've submitted a post, we'll be notified to take a look. We may make small edits (grammar, spelling). For any large edits or ideas for the post, we'll write in comments for your review.
-
-## Publish the post
-
-Once we've gone through the post and you have approved the final version, we'll release the post! We'll coordinate on how we want to publicize the post.
+After you've submitted a post, we'll be notified to take a look. We will reply to you with our feedback, whether we suggest any revisions, or whether another avenue may be better suited for R Views.
