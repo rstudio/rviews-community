@@ -4,14 +4,14 @@ This outlines how to submit a post for consideration to R Views Community. Would
 
 ## Start a pull request
 
-*   Fork the package and clone onto your computer. If you haven't done this before, we recommend using `usethis::create_from_github("rstudio/rviews-community", fork = TRUE)`.
+*   Fork the repo and clone onto your computer. If you haven't done this before, we recommend using `usethis::create_from_github("rstudio/rviews-community", fork = TRUE)`.
 *   Create a Git branch for your pull request (PR). We recommend using `usethis::pr_init("title-of-post")`.
 
 ## Write a new post
 
 If you are using R Studio:
 
-* Build the package by running Ctrl + Shift + B / Command + Shift + B.
+* Build the R Views Community package by running Ctrl + Shift + B / Command + Shift + B.
 * Open a document by going to `File` > `New File` > `R Markdown`. Select `From Template` from the dialogue box menu and then `R Views Community Post Submission`. A custom file for R Views will appear and you can write your post there. Add any files/data that you may need in the folder that is created.
 
 ## Push up changes
