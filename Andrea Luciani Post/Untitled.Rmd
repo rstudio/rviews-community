@@ -1,0 +1,399 @@
+---
+title: "SEM Stochastic Simulation and Optimal Control"
+author: "Andrea Luciani"
+date: "15/01/2022"
+summary: "A brief summary of your post here"
+output: html_document
+---
+
+*Andrea Luciani is a Technical Advisor for the Directorate General for Economics, Statistics and Research at the Bank of Italy, and co-author of the bimets package.*
+
+```{r setup, include=FALSE} 
+
+#load required libraries
+library(bimets)
+library(igraph)
+#library(extrafont)
+library(hrbrthemes)
+library(ggalt)
+library(ggplot2)
+library(plotly)
+
+#loadfonts(device = "win") 
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In our [first post](https://rviews.rstudio.com/2021/01/22/sem-time-series-modeling/) we presented an approach on how to estimate and simulate Structural Equation Models [(SEM)](https://en.wikipedia.org/wiki/Structural_equation_modeling) in R. In particular, we focused on R tools that allow users to forecast advanced simultaneous equations models having linear restrictions on coefficients, error autocorrelation on residuals, and conditional equation evaluation. 
+
+The simulation of these econometric models often requires using iterative algorithms in ways that are well beyond what the `ts()`, `lm()` and `predict()` functions were designed to do; therefore, in our first post, we made a forecasting exercise of a Klein model by using the deterministic simulation procedure available into the [bimets](https://cran.r-project.org/package=bimets) package.
+
+However, deterministic algorithms have significant limitations when applied in forecasting exercises. Forecasts produced by structural econometric models are subject to several sources of error, such as random disturbance term of each stochastic equation, errors in estimated coefficients, errors in forecasts of exogenous variables. 
+
+The forecast error depending on the structural disturbances can be analyzed by using a stochastic simulation approach.
+
+In stochastic simulations, the structural disturbances are given values with specified stochastic properties. The error terms of the estimated equations are appropriately perturbed. Technical identities and exogenous variables can also be perturbed by disturbances with specified stochastic properties. Programmatically, a straightforward approach to solve the problem is a Monte-Carlo method: the model is solved for each data set with different values for the disturbances. Finally, forecast statistics (e.g. mean, standard deviation, etc.) can be computed for each simulated endogenous variable. 
+
+Using the [Klein model](http://www.ipe.ro/rjef/rjef1_14/rjef1_2014p5-14.pdf) defined in our first post, we can attempt to complete a US *Gross National Product* forecasting exercise, given a user-specified uncertainty on *Consumption* and *Government Expenditure* time series. 
+
+The Klein model will be perturbed by applying a normal disturbance to the endogenous *Consumption* behavioral `cn` in year 1942, and a uniform disturbance to the exogenous *Government Expenditure* time series `g` along all the forecast time range. The normal disturbance applied to the `cn` stochastic equation has a zero mean and a standard deviation equal to its regression standard error, thus roughly replicating the regression error during the current perturbation (not accounting for inter-equations cross-covariance).
+
+```{r hidden_code, include=FALSE}
+
+#load library
+library(bimets)
+
+#define the Klein model
+kleinModelDef <- "
+MODEL
+
+COMMENT> Modified Klein Model 1 of the U.S. Economy with PDL, 
+COMMENT> autocorrelation on errors, restrictions and conditional equation evaluations
+
+COMMENT> Consumption with autocorrelation on errors
+BEHAVIORAL> cn
+TSRANGE 1923 1 1940 1
+EQ> cn =  a1 + a2*p + a3*TSLAG(p,1) + a4*(wp+wg) 
+COEFF> a1 a2 a3 a4
+ERROR> AUTO(2)
+
+COMMENT> Investment with restrictions
+BEHAVIORAL> i
+TSRANGE 1923 1 1940 1
+EQ> i = b1 + b2*p + b3*TSLAG(p,1) + b4*TSLAG(k,1)
+COEFF> b1 b2 b3 b4
+RESTRICT> b2 + b3 = 1
+
+COMMENT> Demand for Labor with PDL
+BEHAVIORAL> wp 
+TSRANGE 1923 1 1940 1
+EQ> wp = c1 + c2*(y+t-wg) + c3*TSLAG(y+t-wg,1) + c4*time
+COEFF> c1 c2 c3 c4
+PDL> c3 1 2
+
+COMMENT> Gross National Product
+IDENTITY> y
+EQ> y = cn + i + g - t
+
+COMMENT> Profits
+IDENTITY> p
+EQ> p = y - (wp+wg)
+
+COMMENT> Capital Stock with IF switches
+IDENTITY> k
+EQ> k = TSLAG(k,1) + i
+IF> i > 0
+IDENTITY> k
+EQ> k = TSLAG(k,1) 
+IF> i <= 0
+
+END
+"
+
+#load the model
+kleinModel <- LOAD_MODEL(modelText = kleinModelDef)
+
+
+#define data
+kleinModelData <- list(  
+  cn  =TIMESERIES(39.8,41.9,45,49.2,50.6,52.6,55.1,56.2,57.3,57.8,
+                  55,50.9,45.6,46.5,48.7,51.3,57.7,58.7,57.5,61.6,65,69.7, 	
+                  START=c(1920,1),FREQ=1),
+  g   =TIMESERIES(4.6,6.6,6.1,5.7,6.6,6.5,6.6,7.6,7.9,8.1,9.4,10.7,
+                  10.2,9.3,10,10.5,10.3,11,13,14.4,15.4,22.3,	
+                  START=c(1920,1),FREQ=1),
+  i   =TIMESERIES(2.7,-.2,1.9,5.2,3,5.1,5.6,4.2,3,5.1,1,-3.4,-6.2,
+                  -5.1,-3,-1.3,2.1,2,-1.9,1.3,3.3,4.9,	
+                  START=c(1920,1),FREQ=1),
+  k   =TIMESERIES(182.8,182.6,184.5,189.7,192.7,197.8,203.4,207.6,
+                  210.6,215.7,216.7,213.3,207.1,202,199,197.7,199.8,
+                  201.8,199.9,201.2,204.5,209.4,	
+                  START=c(1920,1),FREQ=1),
+  p   =TIMESERIES(12.7,12.4,16.9,18.4,19.4,20.1,19.6,19.8,21.1,21.7,
+                  15.6,11.4,7,11.2,12.3,14,17.6,17.3,15.3,19,21.1,23.5,	
+                  START=c(1920,1),FREQ=1),
+  wp  =TIMESERIES(28.8,25.5,29.3,34.1,33.9,35.4,37.4,37.9,39.2,41.3,
+                  37.9,34.5,29,28.5,30.6,33.2,36.8,41,38.2,41.6,45,53.3,	
+                  START=c(1920,1),FREQ=1),
+  y   =TIMESERIES(43.7,40.6,49.1,55.4,56.4,58.7,60.3,61.3,64,67,57.7,
+                  50.7,41.3,45.3,48.9,53.3,61.8,65,61.2,68.4,74.1,85.3,	
+                  START=c(1920,1),FREQ=1),
+  t   =TIMESERIES(3.4,7.7,3.9,4.7,3.8,5.5,7,6.7,4.2,4,7.7,7.5,8.3,5.4,
+                  6.8,7.2,8.3,6.7,7.4,8.9,9.6,11.6,	
+                  START=c(1920,1),FREQ=1),
+  time=TIMESERIES(NA,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,
+                  1,2,3,4,5,6,7,8,9,10,	
+                  START=c(1920,1),FREQ=1),
+  wg  =TIMESERIES(2.2,2.7,2.9,2.9,3.1,3.2,3.3,3.6,3.7,4,4.2,4.8,
+                  5.3,5.6,6,6.1,7.4,6.7,7.7,7.8,8,8.5,	
+                  START=c(1920,1),FREQ=1)
+);
+
+#load time series into the model object
+kleinModel <- LOAD_MODEL_DATA(kleinModel,kleinModelData)
+
+#estimate the model
+kleinModel <- ESTIMATE(kleinModel, quietly=TRUE)
+
+
+#we need to extend exogenous variables up to 1944
+kleinModel$modelData <- within(kleinModel$modelData,{
+    wg    = TSEXTEND(wg,  UPTO=c(1944,1),EXTMODE='CONSTANT')
+    t     = TSEXTEND(t,   UPTO=c(1944,1),EXTMODE='LINEAR')
+    g     = TSEXTEND(g,   UPTO=c(1944,1),EXTMODE='CONSTANT')
+    k     = TSEXTEND(k,   UPTO=c(1944,1),EXTMODE='LINEAR')
+    time  = TSEXTEND(time,UPTO=c(1944,1),EXTMODE='LINEAR')
+  })
+
+```  
+
+```{r stochsimulate}
+
+#we want to perform a stochastic forecast of the GNP up to 1944
+#we will add normal disturbances to endogenous Consumption 'cn' 
+#in 1942 by using its regression standard error
+#we will add uniform disturbance to exogenous Government Expenditure 'g'
+#in whole TSRANGE
+
+myStochStructure <- list(
+  cn=list(
+    TSRANGE=c(1942,1,1942,1),
+    TYPE='NORM',
+    PARS=c(0,kleinModel$behaviorals$cn$statistics$StandardErrorRegression)
+  ),
+  g=list(
+    TSRANGE=TRUE,
+    TYPE='UNIF',
+    PARS=c(-1,1)
+  )
+)
+ 
+#model stochastic forecast 
+kleinModel <- STOCHSIMULATE(kleinModel
+                            ,simType='FORECAST'
+                            ,TSRANGE=c(1941,1,1944,1)
+                            ,StochStructure=myStochStructure
+                            ,StochSeed=123
+                            ,quietly=TRUE
+)
+
+#print mean and standard deviation for the forecasted GNP
+with(kleinModel$stochastic_simulation,TABIT(y$mean, y$sd))
+
+```
+```{r plot_stochsimulate, echo=FALSE, warning=FALSE}
+
+## CHART PRODUCTION
+
+#get mean and sd time series
+y_forecast_mean <- kleinModel$stochastic_simulation$y$mean
+y_forecast_sd <- kleinModel$stochastic_simulation$y$sd
+
+#get historical static simulation
+kleinModel <- SIMULATE(kleinModel
+                       ,simType='STATIC'
+                       ,TSRANGE=c(1923,1,1941,1)
+                       ,simConvergence=0.00001
+                       ,simIterLimit=100
+                       ,quietly=TRUE
+)
+y_simulated <- kleinModel$simulation$y
+
+#build plot data
+data <- data.frame(
+  years      = as.Date(paste0(1920:1944,"-01-01")),
+  historical = TSPROJECT(kleinModelData$y, TSRANGE=c(1920,1,1944,1),EXTEND = TRUE),
+  forecast_mean   = TSPROJECT(y_forecast_mean, TSRANGE=c(1920,1,1944,1),EXTEND = TRUE),
+  simulated  = TSPROJECT(y_simulated, TSRANGE=c(1920,1,1944,1),EXTEND = TRUE),
+  forecast_sd   = TSPROJECT(y_forecast_sd, TSRANGE=c(1920,1,1944,1),EXTEND = TRUE)
+)
+
+#errors and bands
+data$simAbsError      <- abs(data$historical-data$simulated)
+data$forecastUpBand   <- data$forecast_mean+data$forecast_sd
+data$forecastDownBand <- data$forecast_mean-data$forecast_sd
+
+#get stochastic realizations
+for (idx in 1:100)
+{
+  data[[paste0('ss',idx)]] <- TSPROJECT(TSERIES(kleinModel$simulation_MM$y[,idx+1]
+                                             ,START=c(1941,1)
+                                             ,FREQ=1)
+                                        ,TSRANGE=c(1920,1,1944,1)
+                                        ,EXTEND = TRUE)
+}
+
+#define colors
+errorColor      <- "#69b3a2"
+simulatedColor  <- rgb(0.2, 0.6, 0.9, 1)
+historicalColor <- rgb(0.5, 0.5, 0.5, 1)
+forecastColor   <- rgb(1.0, 0.3, 0.3, 1)
+bandColor       <- rgb(1, 0.9, 0, 1)
+stochColor      <- rgb(1, 0.7, 0.7, 1)
+
+#main plot
+tsPlot <- ggplot(data, aes(x=years), caption="ee") +
+  
+  #historical
+  geom_xspline(aes(y=historical ), size=1, color=historicalColor,spline_shape = -0.5) +
+  #simulated
+  geom_xspline(aes(y=simulated ), size=1, color=simulatedColor,spline_shape = -0.5)
+
+#theme 
+for (idx in 1:100) 
+{ 
+  tsPlot <- tsPlot + geom_xspline(aes_string(y=paste0('ss',idx)), size=0.5,spline_shape = -0.5, color=stochColor,alpha=.3)
+}
+
+#add stuff to plot
+tsPlot <- tsPlot  +
+  #forecast
+  geom_xspline(aes(y=forecast_mean ), size=1, color=forecastColor,spline_shape = -0.5) +
+  #upper band
+  geom_xspline(aes(y=forecastUpBand ), size=1,spline_shape = -0.5, color=bandColor,alpha=.9) +
+  #lower band
+  geom_xspline(aes(y=forecastDownBand ), size=1,spline_shape = -0.5, color=bandColor,alpha=.9) 
+
+#errors bar
+tsPlot <- tsPlot  +
+  geom_bar(aes(y=simAbsError), stat="identity", size=.1, fill=errorColor, color="black", alpha=.4) + 
+  scale_y_continuous( name = "GNP" )  
+
+tsPlot <- tsPlot  +
+  theme_ipsum() +
+  #theme customization
+  theme(
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0.5),
+    plot.caption = element_text(hjust = 0.5, size = 11),
+    axis.title.x=element_blank()
+  )
+
+tsPlot <- tsPlot  +
+  #title and caption
+  labs(title = "Klein Model GNP: stochastic simulation and forecast",
+       caption = "GNP: historical in grey, static simulation in blue, absolute errors in light blue.\nForecast: stochastic realizations in light red, average in red, average +/- standard deviation in light yellow.")
+
+tsPlot
+```
+
+Another limitation of the deterministic simulation procedure relies on the fact that analysts often do not want to perform a mere forecasting exercise. Usually, a performance measure (i.e. *objective-function*) is assigned to an econometric model, depending on the value of forecasted endogenous variables; thus, analysts try to enhance this measure by fine-tuning exogenous variables (e.g. the *instruments*) of the model (e.g. policy analysis).
+
+Generally speaking, this is an *optimal control* exercise: the optimization consists of maximizing an objective-function, depending on (forecasted) endogenous variables, given a set of user-constraints plus the constraints imposed by the econometric model equations. 
+
+In the following exercise, we will use the [bimets](https://cran.r-project.org/package=bimets) `OPTIMIZE()` procedure which allows R users to perform optimal control exercises on simultaneous equations models. The exercise will be completed by using the following code on the previously defined Klein model, and we will assume that:
+
+i) The objective-function definition is:
+$f(y, cn, g) = (y-110)+(cn-90)*|cn-90|-\sqrt{g-20}$
+given $y$ as the simulated *Gross National Product*, $cn$ as the simulated *Consumption* and $g$ as the exogenous *Government Expenditure*. The basic idea is to maximize *Consumption*, and secondarily the *Gross National Product*, while reducing the *Government Expenditure*;
+
+ii) The instrument variables (i.e. `INSTRUMENT` in following code snippet) are the $cn$ *Consumption* "booster" (i.e. the [*add-factor*](https://stats.oecd.org/glossary/detail.asp?ID=44#:~:text=An%20add%2Dfactor%20is%20the,the%20forecast%20period%20as%20well.), not to be confused with the simulated *Consumption* in the objective-function) and the $g$ *Government Expenditure*, defined over the following domains: $cn \in (-5,5)$, $g \in (15,25)$;
+
+iii) The following restrictions are applied to the `INSTRUMENT`: $g + cn^2/2 < 27 \wedge g + cn > 17$, given again $cn$ as the *Consumption* "booster" (i.e. the *add-factor*) and $g$ as the *Government Expenditure*;
+
+The scatter plot at the end of this post is populated with `2916` objective-function stochastic realizations; the `210.58` local maximum is stored in the `kleinModel$optimize$optFunMax` variable, while the instruments that allow local maximum to be achieved are stored in the `kleinModel$optimize$INSTRUMENT` variable. Code follows:
+
+
+```{r optimize}
+
+#we want to maximize the non-linear objective function:
+#f()=(y-110)+(cn-90)*ABS(cn-90)-(g-20)^0.5
+#in 1942 by using INSTRUMENT cn in range (-5,5) 
+#(cn is endogenous so we use the add-factor)
+#and g in range (15,25)
+#we will also impose the following non-linear restriction:
+#g+(cn^2)/2<27 & g+cn>17
+
+#define INSTRUMENT and boundaries
+myOptimizeBounds <- list(
+    cn = list( TSRANGE = TRUE
+            ,BOUNDS = c(-5,5)),
+     g = list( TSRANGE = TRUE
+            ,BOUNDS = c(15,25))
+)
+
+#define restrictions
+myOptimizeRestrictions <- list(
+    myRes1=list(
+         TSRANGE = TRUE
+        ,INEQUALITY = 'g+(cn^2)/2<27 & g+cn>17')
+)
+
+#define objective function
+myOptimizeFunctions <- list(
+    myFun1 = list(
+         TSRANGE = TRUE
+        ,FUNCTION = '(y-110)+(cn-90)*ABS(cn-90)-(g-20)^0.5')
+)
+
+#Monte-Carlo optimization by using 10000 stochastic realizations
+#and 1E-4 convergence criterion 
+kleinModel <- OPTIMIZE(kleinModel
+                      ,simType = 'FORECAST'
+                      ,TSRANGE=c(1942,1,1942,1)
+                      ,simConvergence= 1E-4
+                      ,simIterLimit  = 1000
+                      ,StochReplica  = 10000
+                      ,StochSeed = 123
+                      ,OptimizeBounds = myOptimizeBounds
+                      ,OptimizeRestrictions = myOptimizeRestrictions
+                      ,OptimizeFunctions = myOptimizeFunctions
+                      )
+
+#print local maximum
+kleinModel$optimize$optFunMax
+
+#print INSTRUMENT that allow local maximum to be achieved
+kleinModel$optimize$INSTRUMENT
+```
+
+```{r plot_optimize, echo=FALSE, warning=FALSE}
+
+#define data point
+scatter_input_data<-NULL
+scatter_input_data_x<-t(kleinModel$INSTRUMENT_MM$cn)[c(FALSE,kleinModel$optimize$realizationsToKeep)]
+scatter_input_data_y<-t(kleinModel$INSTRUMENT_MM$g)[c(FALSE,kleinModel$optimize$realizationsToKeep)]
+scatter_input_data_z<-t(kleinModel$optimize$optFunResults)[kleinModel$optimize$realizationsToKeep]
+scatter_input_data<-data.frame(x=scatter_input_data_x,y=scatter_input_data_y,z=scatter_input_data_z)
+
+#create chart
+fig <-  plot_ly(
+                #width = 800,
+                height = 600,
+                scatter_input_data, x = ~x, y = ~y, z = ~z,
+                      marker = list(color = ~z, 
+                                    colorscale = 'Viridis', 
+                                    reversescale = TRUE,
+                                    #color_continuous_scale=c("red", "green", "blue"),
+                                    showscale = FALSE,
+                                    size=4
+                                    ),
+                hoverinfo='text',
+                text=~paste('<br> cn: ',sprintf("%.2f",x),
+                               '<br> g: ',sprintf("%.2f",y),
+                               '<br> f: ',sprintf("%.2f",z))
+                )
+fig <- fig %>% add_markers()
+fig <- fig %>% layout(scene = list(xaxis = list(title = 'Consumption booster (add-factor)'),
+                                   yaxis = list(title = 'Government Expenditure'),
+                                   zaxis = list(title = 'Objective function'),
+                                   camera=(list(
+                                     eye=list(x=-1.9,y=-1.9,z=1.1)#,
+                                     #up=list(x=0,y=0,z=0),
+                                     #center=list(x=0,y=0,z=0)
+                                   ))),
+                      title=list(x=0.5,y=0.85,
+                                 text='<b>Klein Model: Monte-Carlo Optimal Control</b>',
+                                 font=list(family='Verdana',size=20,color='black')
+                                ),
+                      annotations = 
+                        list(x = 0.5,y = -0.05, text = "<i>Objective-function stochastic realizations that are computable<br>and verify user-provided restrictions. Use the mouse to rotate and zoom the plot.</i>", 
+                             showarrow = F, xref='paper', yref='paper', 
+                             xanchor='center', yanchor='auto', xshift=0, yshift=0,
+                             font=list(family='Verdana',size=12, color="gray"))
+                      )
+fig
+
+```
+
+
+Disclaimer: *The views and opinions expressed in this page are those of the author and do not necessarily reflect the official policy or position of the Bank of Italy. Examples of analysis performed within these pages are only examples. They should not be utilized in real-world analytic products as they are based only on very limited and dated open source information. Assumptions made within the analysis are not reflective of the position of the Bank of Italy.*
