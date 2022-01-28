@@ -6,7 +6,7 @@ summary: "A brief summary of your post here"
 output: html_document
 ---
 
-*Andrea Luciani is a Technical Advisor for the Directorate General for Economics, Statistics and Research at the Bank of Italy, and co-author of the bimets package.*
+*Andrea Luciani is a Technical Advisor for the Directorate General for Economics, Statistics and Research at the Bank of Italy, and co-author of the [bimets](https://cran.r-project.org/package=bimets) package.*
 
 ```{r setup, include=FALSE} 
 
