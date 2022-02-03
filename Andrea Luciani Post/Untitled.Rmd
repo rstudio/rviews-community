@@ -2,7 +2,7 @@
 title: "SEM Stochastic Simulation and Optimal Control"
 author: "Andrea Luciani"
 date: "15/01/2022"
-summary: "A brief summary of your post here"
+summary: "Forecast errors in Structural Equation Models can be analyzed by using a stochastic simulation in which the structural disturbances are given values with specified stochastic properties. Moreover, a performance measure (i.e. objective-function) is assigned to an econometric model, depending on the value of forecasted endogenous variables; thus, analysts try to enhance this measure by fine-tuning exogenous variables (i.e. the instruments) of the model (e.g. policy analysis). In this post, I show how to complete these analyses in R."
 output: html_document
 ---
 
@@ -21,12 +21,15 @@ library(plotly)
 #loadfonts(device = "win") 
 knitr::opts_chunk$set(echo = TRUE)
 ```
+#### Introduction
 
-In this post, I show how to analyze the forecast error for a Structural Equation Model [(SEM)](https://en.wikipedia.org/wiki/Structural_equation_modeling) by means of a stochastic simulation. In my [previous post](https://rviews.rstudio.com/2021/01/22/sem-time-series-modeling/), I presented an approach to estimating and simulating SEMs in R which focused on R tools that allow users to forecast advanced simultaneous equations models having linear restrictions on coefficients, error autocorrelation on residuals, and conditional equation evaluation. I described how simulating these econometric models often requires using iterative algorithms in ways that are well beyond what the `ts()`, `lm()` and `predict()` functions were designed to do and worked through a forecasting exercise of a Klein model by using the deterministic simulation procedure available into the [bimets](https://cran.r-project.org/package=bimets) package.
+In this post, I show how to analyze the forecast error for a Structural Equation Model [(SEM)](https://en.wikipedia.org/wiki/Structural_equation_modeling) by means of a stochastic simulation, and how to perform optimal control. In my [previous post](https://rviews.rstudio.com/2021/01/22/sem-time-series-modeling/), I presented an approach to estimating and simulating SEMs in R which focused on R tools that allow users to forecast advanced simultaneous equations models having linear restrictions on coefficients, error autocorrelation on residuals, and conditional equation evaluation. I described how simulating these econometric models often requires using iterative algorithms in ways that are well beyond what the `ts()`, `lm()` and `predict()` functions were designed to do and worked through a forecasting exercise of a Klein model by using the deterministic simulation procedure available into the [bimets](https://cran.r-project.org/package=bimets) package.
+
+#### Stochastic Simulation
 
 Deterministic algorithms, however, have significant limitations when applied to SEM forecasts which are subject to several sources of error such as: a random disturbance term of each stochastic equation, errors in estimated coefficients, and errors in forecasts of exogenous variables. 
 
-The forecast error depending on the structural disturbances can be analyzed by using a stochastic simulations in which the structural disturbances are given values with specified stochastic properties. The error terms of the estimated equations are appropriately perturbed. Technical identities and exogenous variables can also be perturbed by disturbances with specified stochastic properties. Programmatically, a straightforward approach to solve the problem is a Monte-Carlo method: the model is solved for each data set with different values for the disturbances. Finally, forecast statistics (e.g. mean, standard deviation, etc.) can be computed for each simulated endogenous variable. 
+The forecast error depending on the structural disturbances can be analyzed by using a stochastic simulation in which the structural disturbances are given values with specified stochastic properties. The error terms of the estimated equations are appropriately perturbed. Technical identities and exogenous variables can also be perturbed by disturbances with specified stochastic properties. Programmatically, a straightforward approach to solve the problem is a Monte-Carlo method: the model is solved for each data set with different values for the disturbances. Finally, forecast statistics (e.g. mean, standard deviation, etc.) can be computed for each simulated endogenous variable. 
 
 Using the [Klein model](http://www.ipe.ro/rjef/rjef1_14/rjef1_2014p5-14.pdf) defined in my previous post, we can attempt to complete a US *Gross National Product* forecasting exercise, given a user-specified uncertainty on *Consumption* and *Government Expenditure* time series. 
 
@@ -248,7 +251,7 @@ tsPlot <- tsPlot  +
 
 #errors bar
 tsPlot <- tsPlot  +
-  geom_bar(aes(y=simAbsError), stat="identity", size=.1, fill=errorColor, color="black", alpha=.4) + 
+  geom_bar(aes(y=simAbsError), stat="identity", size=.1, fill=errorColor, color="gray", alpha=.4) + 
   scale_y_continuous( name = "GNP" )  
 
 tsPlot <- tsPlot  +
@@ -256,9 +259,17 @@ tsPlot <- tsPlot  +
   #theme customization
   theme(
     axis.title.y = element_blank(),
-    plot.title = element_text(hjust = 0.5),
-    plot.caption = element_text(hjust = 0.5, size = 11),
-    axis.title.x=element_blank()
+    plot.title = element_text(hjust = 0.5, size = 17, family='verdana', face='bold'),
+    plot.caption = element_text(hjust = 0.5, size = 10, family='verdana', color='#333333'),
+    axis.title.x=element_blank(),
+    panel.background = element_rect(fill = "white",
+                                    colour = "white",
+                                    size = 0.5, linetype = "solid"),
+    panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                    colour = "gray"), 
+    panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                                    colour = "gray"),
+    axis.ticks = element_blank()
   )
 
 tsPlot <- tsPlot  +
@@ -267,9 +278,13 @@ tsPlot <- tsPlot  +
        caption = "GNP: historical in grey, static simulation in blue, absolute errors in light blue.\nForecast: stochastic realizations in light red, average in red, average +/- standard deviation in light yellow.")
 
 tsPlot
+
 ```
 
-Another limitation of the deterministic simulation procedure relies on the fact that analysts often do not want to perform a mere forecasting exercise. Usually, a performance measure (i.e. *objective-function*) is assigned to an econometric model, depending on the value of forecasted endogenous variables; thus, analysts try to enhance this measure by fine-tuning exogenous variables (e.g. the *instruments*) of the model (e.g. policy analysis).
+
+#### Optimal Control
+
+Another limitation of the deterministic simulation procedure relies on the fact that analysts often do not want to perform a mere forecasting exercise. Usually, a performance measure (i.e. *objective-function*) is assigned to an econometric model, depending on the value of forecasted endogenous variables; thus, analysts try to enhance this measure by fine-tuning exogenous variables (i.e. the *instruments*) of the model (e.g. policy analysis).
 
 Generally speaking, this is an *optimal control* exercise: the optimization consists of maximizing an objective-function, depending on (forecasted) endogenous variables, given a set of user-constraints plus the constraints imposed by the econometric model equations. 
 
@@ -379,10 +394,10 @@ fig <- fig %>% layout(scene = list(xaxis = list(title = 'Consumption booster (ad
                                  font=list(family='Verdana',size=20,color='black')
                                 ),
                       annotations = 
-                        list(x = 0.5,y = -0.05, text = "<i>Objective-function stochastic realizations that are computable<br>and verify user-provided restrictions. Use the mouse to rotate and zoom the plot.</i>", 
+                        list(x = 0.5,y = -0.05, text = "Objective-function stochastic realizations that are computable<br>and verify user-provided restrictions. Use the mouse to rotate and zoom the plot.", 
                              showarrow = F, xref='paper', yref='paper', 
                              xanchor='center', yanchor='auto', xshift=0, yshift=0,
-                             font=list(family='Verdana',size=12, color="gray"))
+                             font=list(family='Verdana',size=13, color='#666666'))
                       )
 fig
 
@@ -391,8 +406,8 @@ fig
 
 The scatter plot of objective function surface is populated with `2916` objective-function stochastic realizations; the `210.58` local maximum is stored in the `kleinModel$optimize$optFunMax` variable, while the instruments that allow local maximum to be achieved are stored in the `kleinModel$optimize$INSTRUMENT` variable.
 
-## THE POST NEEDS A CONCLUSION OR SUMMARY
+#### Summary
 
-
+Forecast errors in Structural Equation Models can be analyzed by using a stochastic simulation in which the structural disturbances are given values with specified stochastic properties. Stochastic modeling forecasts the probability of various outcomes under different conditions, using random variables. Often, a performance measure (i.e. objective-function) is assigned to an econometric model, depending on the value of forecasted endogenous variables. The Monte Carlo simulation is one example of a stochastic model; it can simulate how an econometric model may perform based on the probability distributions of individual variables of the model, allowing analysts to enhance the objective-function by fine-tuning exogenous variables (i.e. the instruments) of the model (e.g. policy analysis) in the so-called optimal control procedure. Examples presented in this post show how to perform stochastic simulation and optimal control in R.
 
 Disclaimer: *The views and opinions expressed in this page are those of the author and do not necessarily reflect the official policy or position of the Bank of Italy. Examples of analysis performed within these pages are only examples. They should not be utilized in real-world analytic products as they are based only on very limited and dated open source information. Assumptions made within the analysis are not reflective of the position of the Bank of Italy.*
