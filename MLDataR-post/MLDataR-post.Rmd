@@ -1,0 +1,53 @@
+---
+title: "MLDataR - A Package for Exploring ML in Healthcare"
+author: "Gary Hudson"
+date: 2022-02-22
+summary: "MLDataR is a package containing real-world datasets for machine learning applications."
+output: html_document
+---
+
+*This is a guest post from Gary Hutson, lead of Machine Learning at Crisp Thinking, a company that provides AI solutions to moderate and detect offensive and abusive content online. His website is available at [https://hutsons-hacks.info/](https://hutsons-hacks.info/) and he can be reached through Twitter, [\@StatsGary](https://twitter.com/StatsGary).*
+
+## MLDataR package motivation
+
+I love all things Machine Learning. This package was driven from the need to have example datasets from across the healthcare system for machine learning problems. I have been a machine learning practitioner for over 9 years, however I still find it interesting to explore new examples and datasets related to supervised machine learning classification and regression.
+
+Because this contains clinical examples, and examples from real hospital systems, it allows the potential machine learning engineer to practice on all things supervised machine learning. 
+
+In spite of the package being aimed at healthcare, I plan to expand this to new territories and domains. 
+
+## What does the package contain?
+
+The package contains several datasets for healthcare modelling problems. This is just a start and I am working with the NHS-R community to build this out even further, sort of a call to arms to equip the package with even more examples of excellent datasets that can be used for healthcare. 
+
+**Diabetes disease prediction**  - This dataset contains key variables, gathered from hospital research and papers of the British Medical Journal, to identify the drivers behind diabetes disease. This dataset is useful for working with supervised classification machine learning problems, or statistical problems, and uses past historic patient information to train and classify a model, with the aim to classify if a patient will have diabetes when they first present to the service
+
+**Diabetes early on set** - gathered by Asif Laldin, the package contributor from Gloucestershire Clinical Commissioning Group, and contains examples of the time between prediabetes and getting diabetic conditions. This is aimed at a regression challenge, with the aim to predict the time between pre diabetes and onset of diabetes. The aim is to narrow the gap between when they first present in a primary care setting to the onset of diabetes.
+
+**Failing care home prediction** - using measures from the NHS incident reporting databases, with the aim of classifying if a care home will fail, due to the aggregation of these incident types. The aim is to take a macroscopic view at predicting whether a care home will fail, based on results from retrospective inspections.
+
+**Heart disease prediction** - intended for supervised machine learning classification problems of which patients are likely to present with heart disease. This uses independent variables, such as resting blood pressure; maximum heart rate; history of angina and other metrics to predict heart disease. 
+
+**Thyroid disease classification** - this one has a personal effect on me, as I am a sufferer of this disease. This drove me to source this dataset, from the Garavan Institute, based on a collection of studies this institute did around thyroid disease. This contains 28 independent or predictor variables of patients with or without the disease, and is also covered in the vignette supporting this package, and the supporting YouTube tutorial using TidyModels to model this with various ML techniques. 
+
+**Counter Strike Global Offensive (CSGO)** - which was kindly contributed by Asif Laldin, and is a detraction from the healthcare datasets in the package. I never intended the package to be purely healthcare ML datasets, and I have plans to include credit card fraud examples, tabular playground examples from Kaggle and many more, so watch this space…
+
+## Can I contribute my own dataset that I have worked on?
+
+The answer is you can, and I would greatly encourage it. To boot, you will become a package contributor. I am looking for ML datasets from across a wide range of industries and organisations. If you have an idea, and are interested, please submit a pull request to the [GitHub repository](https://github.com/StatsGary/MLDataR) and add your dataset.
+
+## Final Thoughts
+
+I have really enjoyed putting this package together and I hope you can use it to:
+
+**Learn TidyModels or caret.** I have put together a few tutorials on these in the past:
+
+* Build a TidyModels classification model from scratch: https://www.youtube.com/watch?v=hxRx7ozLNKw&t=2583s
+* Advanced modelling with caret for supervised machine learning: https://www.youtube.com/watch?v=rO40vvKXU-4&t=3085s
+* Reticulate - R and Python a happy union: https://www.youtube.com/watch?v=8WE-EU5k97Q&t=235s
+* Collapsing a caret confusion matrix with ConfusionTableR: https://youtu.be/9zcUlgLySZo
+
+**Putting your models into production:**
+
+* Deploying a caret machine learning model as an API with Plumber: https://youtu.be/WMCkV_J5a0s
+* Creating a microservice with Docker and serving as a restful API: https://youtu.be/JK6VLAKRjO4
