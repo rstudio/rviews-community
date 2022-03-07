@@ -1,16 +1,16 @@
 ---
-title: "Social Data Challenges in the R Community"
+title: "Using R for Social Data Challenges"
 author: "Isabella Velásquez"
 date: "2022-03-20"
-summary: "A brief summary of your post here"
+summary: "Social data challenges provide opportunities for R users to showcase their programming skills and test their perseverence."
 output: html_document
 ---
 
-Today, we want to write about "social data challenges". Programmers partake in a series of prompts designed for a variety of skill sets and skill levels. Participants use them as an opportunity to practice their programming skills, work on algorithmic efficiency, or challenge themselves to learn something new. Often, participants share the code for their submissions, helping others learn how to apply new techniques to their work.
+Today, we want to write about "social data challenges". Participants partake in a series of prompts designed for a variety of skill sets and levels. They are an opportunity to practice programming skills, work on algorithmic efficiency, or learn something new. Often, participants share the code for their submissions, teaching others their processes and techniques.
 
-The prompts are time-bound or time-specific but flexible in their execution. For example, the [30 Day Map Challenge](https://github.com/tjukanovt/30DayMapChallenge) challenges participants to create something new every day in November.
+The challenges test the participants' tenacity with time-bound but flexible prompts. For example, the [30 Day Map Challenge](https://github.com/tjukanovt/30DayMapChallenge) invites participants to create a new map every day in November. The themes are broad: points, land, heatmap. Participants are able to interpret them how they choose.
 
-Although these projects are often language-agnostic, R users often take part. For example, [genuary](http://genuary.art/) invites programmers to create generative art based on a new prompt every day in January. R users creatively apply their coding skills to create stunning works of design. On Day 6 of genuary, [Ryan Timpe](https://twitter.com/ryantimpe) “destroys the square”:
+Although these projects are often language-agnostic, R users often take part. In January, [genuary](http://genuary.art/) encourages participants to create works of generative art based on a series of prompts. R users creatively apply their coding skills to create stunning works of design. On Day 6 of genuary, [Ryan Timpe](https://twitter.com/ryantimpe) "destroys the square":
 
 ![Generative art of nine squares with pieces missing or torn](square.png)
 
@@ -35,18 +35,19 @@ the_square <- expand_grid(
 plot(the_square$x, the_square$y)
 ```
 
-We can also see how Ryan inserted randomness in the plot,  through strategic use of functions like `sample()` and `runif()`:
+We can also see how Ryan inserts randomness in the plot through strategic use of functions like `sample()` and `runif()`:
 
 ```
 circ_origin_size = square_size * runif(1, 2/4, 3/4) 
 ```
 
-[TidyTuesday](https://github.com/rfordatascience/tidytuesday) is another example of a social data project. Borne out of the R4DS Online Learning Community and the R for Data Science textbook, RStudio’s own [Tom Mock](https://twitter.com/thomas_mock) shares a dataset for participants every Tuesday. TidyTuesday encourages R users to make meaningful charts with ggplot2, tidyr, dplyr, and other tools in the tidyverse ecosystem (although, participants are free to use whatever package they’d like).
+[TidyTuesday](https://github.com/rfordatascience/tidytuesday) is another example of a social data challenge. Borne out of the R4DS Online Learning Community and the R for Data Science textbook, RStudio’s own [Tom Mock](https://twitter.com/thomas_mock) shares a dataset for participants every Tuesday. TidyTuesday encourages R users to make meaningful charts with ggplot2, tidyr, dplyr, and other tools in the tidyverse ecosystem (although, participants are free to use whatever package they’d like).
 
 [Moriah Taylor](https://twitter.com/moriah_taylor58) visualizes alternative fueling stations in the U.S. using the [layer](https://cran.r-project.org/web/packages/layer/index.html) package. The use of stacked tilted maps communicates relationships, density, and location while being visually beautiful.
 
-![Stacked tilted map showing density of biodieesel, propane, ethanol, and electric fueling stations in the U.S.](tt.jpg)
-Interested in participating in a social data challenge? The [30 Day Chart Challenge](https://twitter.com/30DayChartChall) offers a new chart type for every day in April. First up is visualizing parts-to-whole. Showcase your R skills, challenge your perseverance, and use the hashtag `#30DayChartChallenge` to share your work with other participants!
+![Stacked tilted map showing density of biodiesel, propane, ethanol, and electric fueling stations in the U.S.](tt.jpg)
+
+Interested in participating in a social data challenge? The [30 Day Chart Challenge](https://twitter.com/30DayChartChall) is coming up in April. Everyday, the challenge offers a new chart type for you to visualize. Showcase your R skills, challenge your perseverance, and use the hashtag `#30DayChartChallenge` to share your work with other participants!
 
 We have started to compile a list of social data challenges. Please add a comment if you are aware of others.
 
