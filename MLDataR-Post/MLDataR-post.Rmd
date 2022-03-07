@@ -1,5 +1,5 @@
 ---
-title: "MLDataR - A Package for Exploring ML in Healthcare"
+title: "MLDataR - Real-world Datasets for Machine Learning Applications"
 author: "Gary Hutson"
 date: 2022-02-22
 summary: "MLDataR is a package containing real-world datasets for machine learning applications."
@@ -10,44 +10,154 @@ output: html_document
 
 ## MLDataR package motivation
 
-I love all things Machine Learning. This package was driven from the need to have example datasets from across the healthcare system for machine learning problems. I have been a machine learning practitioner for over 9 years, however I still find it interesting to explore new examples and datasets related to supervised machine learning classification and regression.
+I love all things Machine Learning. The [MLDataR](https://github.com/StatsGary/MLDataR) package was driven from the need to have example datasets from across the healthcare system for machine learning problems. I have been a machine learning practitioner for over 9 years; however, I still find it interesting to explore new examples and datasets related to supervised machine learning classification and regression.
 
-Because this contains clinical examples, and examples from real hospital systems, it allows the potential machine learning engineer to practice on all things supervised machine learning. 
+Because the package contains clinical examples and examples from real hospital systems, it allows the potential machine learning engineer to practice on all things related to supervised machine learning. 
 
-In spite of the package being aimed at healthcare, I plan to expand this to new territories and domains. 
+In spite of the package originally being aimed at healthcare, I have expanded it to new territories and domains.
 
 ## What does the package contain?
 
-The package contains several datasets for healthcare modelling problems. This is just a start and I am working with the NHS-R community to build this out even further, sort of a call to arms to equip the package with even more examples of excellent datasets that can be used for healthcare. 
+The package contains several datasets for modelling. This is just a start and I am working with the [NHS-R community](https://nhsrcommunity.com/) to build it out even further. It is a sort of a call to arms to equip the package with even more examples of excellent datasets that can be used for machine learning. 
 
-**Diabetes disease prediction**  - This dataset contains key variables, gathered from hospital research and papers of the British Medical Journal, to identify the drivers behind diabetes disease. This dataset is useful for working with supervised classification machine learning problems, or statistical problems, and uses past historic patient information to train and classify a model, with the aim to classify if a patient will have diabetes when they first present to the service
+**Diabetes disease prediction**  - This dataset contains key variables, gathered from hospital research and papers of the British Medical Journal, to identify the drivers behind diabetes disease. This dataset is useful for working with supervised classification machine learning problems or statistical problems. It uses past historic patient information to train and classify a model, with the aim to classify if a patient will have diabetes when they first present to the service.
 
-**Diabetes early on set** - gathered by Asif Laldin, the package contributor from Gloucestershire Clinical Commissioning Group, and contains examples of the time between prediabetes and getting diabetic conditions. This is aimed at a regression challenge, with the aim to predict the time between pre diabetes and onset of diabetes. The aim is to narrow the gap between when they first present in a primary care setting to the onset of diabetes.
+**Diabetes early on set** - Gathered by Asif Laldin, the package contributor from Gloucestershire Clinical Commissioning Group, this dataset contains information on the time between a prediabetes diagnosis and the onset of diabetes.
 
-**Failing care home prediction** - using measures from the NHS incident reporting databases, with the aim of classifying if a care home will fail, due to the aggregation of these incident types. The aim is to take a macroscopic view at predicting whether a care home will fail, based on results from retrospective inspections.
+**Failing care home prediction** - Using measures from the NHS incident reporting databases, this dataset contains data to classify if a care home will fail based on results from retrospective inspections.
 
-**Heart disease prediction** - intended for supervised machine learning classification problems of which patients are likely to present with heart disease. This uses independent variables, such as resting blood pressure; maximum heart rate; history of angina and other metrics to predict heart disease. 
+**Heart disease prediction** - This dataset is intended for supervised machine learning classification problems on which patients are likely to present with heart disease. This uses independent variables, such as resting blood pressure, maximum heart rate, history of angina, and other metrics.
 
-**Thyroid disease classification** - this one has a personal effect on me, as I am a sufferer of this disease. This drove me to source this dataset, from the Garavan Institute, based on a collection of studies this institute did around thyroid disease. This contains 28 independent or predictor variables of patients with or without the disease, and is also covered in the vignette supporting this package, and the supporting YouTube tutorial using TidyModels to model this with various ML techniques. 
+**Thyroid disease classification** - This one has a personal effect on me, as I am a sufferer of this disease. This drove me to source this dataset from the Garavan Institute, based on a collection of studies this institute did around thyroid disease. This contains 28 independent or predictor variables of patients with or without the disease. It is also covered in the [vignette supporting this package](https://cran.r-project.org/web/packages/MLDataR/vignettes/MLDataR.html) and the supporting YouTube tutorial using tidymodels with various ML techniques. 
 
-**Counter Strike Global Offensive (CSGO)** - which was kindly contributed by Asif Laldin, and is a detraction from the healthcare datasets in the package. I never intended the package to be purely healthcare ML datasets, and I have plans to include credit card fraud examples, tabular playground examples from Kaggle and many more, so watch this space…
+**Counter Strike Global Offensive (CSGO)** - This dataset was kindly contributed by Asif Laldin, and is a detraction from the healthcare datasets in the package. I never intended the package to be purely healthcare ML datasets, and I have plans to include credit card fraud examples, tabular playground examples from Kaggle and many more, so watch this space...
+
+## Run a tidymodels routine with heart disease dataset
+
+Let's explore the heart disease dataset contained in MLDataR using a logistic regression model.
+
+```{r, message = FALSE}
+# install.packages("MLDataR")
+library(MLDataR)
+library(dplyr)
+library(tidyr)
+library(tidymodels)
+
+glimpse(MLDataR::heartdisease)
+```
+
+A glimpse into the dataset gives us a quick overview of our dataset. We have 918 rows and 10 columns. We can see our outcome (heart disease) and our nine predictors.
+
+There are a couple of things we want to clean up. Notice that our outcome variable `HeartDisease` loads as a double variable. We want to convert it into a factor variable to use it in our machine learning model.
+
+The variables `Sex`, `RestingECG`, and `Angina` are character variables. For creating models, it is better to have characters encoded as factors.
+
+```{r}
+hd <- heartdisease %>%
+  mutate(across(where(is.character), as.factor),
+         HeartDisease = as.factor(HeartDisease)) %>% 
+  # Remove any missing data
+  na.omit()
+
+is.factor(hd$HeartDisease)
+```
+
+Next, let's partition the data into training and testing sets with the rsample package. We'll use the training set to fit the model and the test set to evaluate how well the model performs on the testing set.
+
+```{r}
+# Divide the data into a training test split
+set.seed(123)
+
+split <- rsample::initial_split(hd, prop = 3 / 4)
+train_data <- rsample::training(split)
+test_data <- rsample::testing(split)
+```
+
+We use the recipes package to run the preprocessing steps for the model. These steps will make our model better.
+
+With a logistic regression model, we want our predictors to be numeric. For factors like `RestingECG`, we convert them into "dummy variables" so that they are numeric. We can use `step_dummy()` to do this.
+
+We want to remove any variables with zero variance from our model. To do this, we run `step_zv()`.
+
+Finally, we want to normalize our predictors since they are on different scales from each other. The function `step_normalize()` helps us do this.
+
+```{r}
+hd_recipe <-
+  recipes::recipe(HeartDisease ~ ., data = train_data) %>%
+  step_dummy(all_nominal(), -all_outcomes()) %>% 
+  recipes::step_zv(all_predictors()) %>% 
+  recipes::step_normalize(all_predictors())
+
+print(hd_recipe)
+```
+
+Now, we can create a `parsnip` model to build a workflow with the recipe we just created.
+
+```{r}
+lr_mod <- logistic_reg() %>% 
+  set_engine("glm")
+
+lr_hd_wflow <- 
+  workflow() %>% 
+  add_model(lr_mod) %>% 
+  add_recipe(hd_recipe)
+
+lr_hd_wflow
+```
+We use `fit` to train the model:
+
+```{r}
+lr_hd_fit <- 
+  lr_hd_wflow %>% 
+  fit(data = hd)
+
+lr_hd_fit
+```
+
+We can use `predict()` to see what our model predicts using the test data from before.
+
+```{r}
+predict(lr_hd_fit, test_data)
+```
+
+To get the predicted probabilities, we can use the `augment()` function:
+
+```{r}
+lr_hd_aug <- 
+  augment(lr_hd_fit, test_data)
+
+lr_hd_aug
+```
+
+How well did our model do? Let's use the yardstick package to calculate the area under the ROC curve. The `roc_auc` function calculates a metric that says how well the predicted heart disease from our model compares to the patient's actual heart disease status.
+
+```{r}
+lr_hd_aug %>% 
+  roc_curve(truth = HeartDisease, .pred_0) %>% 
+  autoplot()
+
+lr_hd_aug %>% 
+  roc_auc(truth = HeartDisease, .pred_0)
+```
+
+With an area under the curve of 0.89, our model is pretty good! I welcome you to explore other possibilities with this dataset.
 
 ## Can I contribute my own dataset that I have worked on?
 
-The answer is you can, and I would greatly encourage it. To boot, you will become a package contributor. I am looking for ML datasets from across a wide range of industries and organisations. If you have an idea, and are interested, please submit a pull request to the [GitHub repository](https://github.com/StatsGary/MLDataR) and add your dataset.
+The answer is you can and I would greatly encourage it. To boot, you will become a package contributor. I am looking for ML datasets from across a wide range of industries and organisations. If you have an idea, and are interested, please submit a pull request to the [GitHub repository](https://github.com/StatsGary/MLDataR) and add your dataset.
 
 ## Final Thoughts
 
 I have really enjoyed putting this package together and I hope you can use it to:
 
-**Learn TidyModels or caret.** I have put together a few tutorials on these in the past:
+**Learn tidymodels or caret.** I have put together a few tutorials on these in the past:
 
-* Build a TidyModels classification model from scratch: https://www.youtube.com/watch?v=hxRx7ozLNKw&t=2583s
+* Building a tidymodels classification model from scratch: https://www.youtube.com/watch?v=hxRx7ozLNKw&t=2583s
 * Advanced modelling with caret for supervised machine learning: https://www.youtube.com/watch?v=rO40vvKXU-4&t=3085s
 * Reticulate - R and Python a happy union: https://www.youtube.com/watch?v=8WE-EU5k97Q&t=235s
 * Collapsing a caret confusion matrix with ConfusionTableR: https://youtu.be/9zcUlgLySZo
 
-**Putting your models into production:**
+**Put your models into production:**
 
 * Deploying a caret machine learning model as an API with Plumber: https://youtu.be/WMCkV_J5a0s
 * Creating a microservice with Docker and serving as a restful API: https://youtu.be/JK6VLAKRjO4
