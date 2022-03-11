@@ -46,9 +46,9 @@ library(tidymodels)
 glimpse(MLDataR::heartdisease)
 ```
 
-A glimpse into the dataset gives us a quick overview of our dataset. We have 918 rows and 10 columns. We can see our outcome (heart disease) and our nine predictors.
+A glimpse into the dataset gives us a quick overview of our dataset. We have 918 rows and 10 columns. We can see our outcome, heart disease, and our nine predictors.
 
-There are a couple of things we want to clean up. Notice that our outcome variable `HeartDisease` loads as a double variable. We want to convert it into a factor variable to use it in our machine learning model.
+There are a couple of things we want to clean up. Notice that our outcome variable `HeartDisease` loads as a double variable. We want to convert it into a factor variable for our machine learning model.
 
 The variables `Sex`, `RestingECG`, and `Angina` are character variables. For creating models, it is better to have characters encoded as factors.
 
@@ -56,21 +56,10 @@ The variables `Sex`, `RestingECG`, and `Angina` are character variables. For cre
 hd <- heartdisease %>%
   mutate(across(where(is.character), as.factor),
          HeartDisease = as.factor(HeartDisease)) %>% 
-  # Remove any missing data
+  # Remove any noncomplete cases
   na.omit()
 
 is.factor(hd$HeartDisease)
-```
-
-Next, let's partition the data into training and testing sets with the rsample package. We'll use the training set to fit the model and the test set to evaluate how well the model performs on the testing set.
-
-```{r}
-# Divide the data into a training test split
-set.seed(123)
-
-split <- rsample::initial_split(hd, prop = 3 / 4)
-train_data <- rsample::training(split)
-test_data <- rsample::testing(split)
 ```
 
 We use the recipes package to run the preprocessing steps for the model. These steps will make our model better.
@@ -83,7 +72,7 @@ Finally, we want to normalize our predictors since they are on different scales 
 
 ```{r}
 hd_recipe <-
-  recipes::recipe(HeartDisease ~ ., data = train_data) %>%
+  recipes::recipe(HeartDisease ~ ., data = hd) %>%
   step_dummy(all_nominal(), -all_outcomes()) %>% 
   recipes::step_zv(all_predictors()) %>% 
   recipes::step_normalize(all_predictors())
@@ -94,8 +83,9 @@ print(hd_recipe)
 Now, we can create a `parsnip` model to build a workflow with the recipe we just created.
 
 ```{r}
-lr_mod <- logistic_reg() %>% 
-  set_engine("glm")
+lr_mod <- logistic_reg() %>%
+  set_engine("glm") %>% 
+  set_mode("classification")
 
 lr_hd_wflow <- 
   workflow() %>% 
@@ -104,6 +94,7 @@ lr_hd_wflow <-
 
 lr_hd_wflow
 ```
+
 We use `fit` to train the model:
 
 ```{r}
@@ -114,33 +105,43 @@ lr_hd_fit <-
 lr_hd_fit
 ```
 
-We can use `predict()` to see what our model predicts using the test data from before.
+If we want to see the summary results of our model in a tidy way (i.e., a data frame with standard column names), we can use the `tidy()` function:
 
 ```{r}
-predict(lr_hd_fit, test_data)
+tidy(lr_hd_fit)
 ```
 
-To get the predicted probabilities, we can use the `augment()` function:
+Looking at the variables, we can see the statistically significant ones (p < 0.05): Cholesterol, FastingBS, MaxHR, HeartPeakReading, Sex, and Angina.
+
+Let's convert the probabilities from the fitted GLM model into odds ratios. This will tell us, "for every change in 1 unit, what is the increase in odds of getting heart disease?"
+
+We can visualize the results using the [OddsPlotty](https://cran.r-project.org/web/packages/OddsPlotty/index.html) package and the `fit` list object from the model.
 
 ```{r}
-lr_hd_aug <- 
-  augment(lr_hd_fit, test_data)
+lr_hd_fit2 <- logistic_reg() %>%
+  set_engine("glm") %>% 
+  set_mode("classification") %>% 
+  fit(HeartDisease ~ ., data = hd)
 
-lr_hd_aug
+tidy_oddsplot <- OddsPlotty::odds_plot(lr_hd_fit$fit$fit$fit,
+                                       title = "Heart Disease Odds Plot",
+                                       point_col = "#6b95ff",
+                                       h_line_color = "red")
+tidy_oddsplot$odds_plot +
+  theme(legend.position = "none")
+
 ```
 
-How well did our model do? Let's use the yardstick package to calculate the area under the ROC curve. The `roc_auc` function calculates a metric that says how well the predicted heart disease from our model compares to the patient's actual heart disease status.
+# for Gary - attempt 2:
 
 ```{r}
-lr_hd_aug %>% 
-  roc_curve(truth = HeartDisease, .pred_0) %>% 
-  autoplot()
-
-lr_hd_aug %>% 
-  roc_auc(truth = HeartDisease, .pred_0)
+tidy_oddsplot <- OddsPlotty::odds_plot(lr_hd_fit2$fit,
+                                       title = "Heart Disease Odds Plot",
+                                       point_col = "#6b95ff",
+                                       h_line_color = "red")
+tidy_oddsplot$odds_plot +
+  theme(legend.position = "none")
 ```
-
-With an area under the curve of 0.89, our model is pretty good! I welcome you to explore other possibilities with this dataset.
 
 ## Can I contribute my own dataset that I have worked on?
 
