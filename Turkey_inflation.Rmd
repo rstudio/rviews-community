@@ -16,9 +16,9 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE, echo = FALSE)
 
 ## Introduction
 
-Inflation is a hot topic for both global and Turkish macroeconomics nowadays. Inspired by Rami Krispin and reverse engineering his U.S. Electricity dashboard, I created a dashboard for Turkey's macroeconomics. You can find a one-month ahead inflation forecast and key monthly macroeconomic variables.
+Inflation is a hot topic for both globally and in Turkey nowadays. Inspired by Rami Krispin, I reverse engineered his [U.S. Electricity dashboard](https://ramikrispin.github.io/USelectricity/) and created a [dashboard](https://enesgencer18.github.io/turkey-macro-dashboard/) to explore a forecast for inflation in Turkey. In this post, I would like to begin to describe some of the technology that went into creating the dashboard.
 
-The data and machine learning pipelines are automated via Docker, Github Actions, and R Markdown. The dashboard has too many dimensions to cover in a single blog post since I experimented with different aspects. As a result, in this blog post, I focus on the underlying economics and the forecasting method I choose, Elastic Net. In the coming blog posts, I might write on different aspects like flexdashboard, Docker, or a more interesting forecasting method like LSTM using Keras on R.
+The data and machine learning pipelines are automated via Docker, Github Actions, and R Markdown. The dashboard has too many dimensions to cover in a single blog post so in this blog post, I focus on the underlying economics and the forecasting method I choose, Elastic Net. In the coming blog posts, I might write on different aspects like flexdashboard, Docker, or a more interesting forecasting method like LSTM using Keras on R.
 
 ## Getting Started
 
