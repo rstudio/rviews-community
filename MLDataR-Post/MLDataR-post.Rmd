@@ -62,41 +62,13 @@ hd <- heartdisease %>%
 is.factor(hd$HeartDisease)
 ```
 
-We use the recipes package to run the preprocessing steps for the model. These steps will make our model better.
-
-With a logistic regression model, we want our predictors to be numeric. For factors like `RestingECG`, we convert them into "dummy variables" so that they are numeric. We can use `step_dummy()` to do this.
+We can create a `parsnip` model to build a workflow with the recipe we just created.
 
 ```{r}
-hd_recipe <-
-  recipes::recipe(HeartDisease ~ ., data = hd) %>%
-  step_dummy(all_nominal(), -all_outcomes())
-
-print(hd_recipe)
-```
-
-Now, we can create a `parsnip` model to build a workflow with the recipe we just created.
-
-```{r}
-lr_mod <- logistic_reg() %>%
+lr_hd_fit <- logistic_reg() %>%
   set_engine("glm") %>% 
-  set_mode("classification")
-
-lr_hd_wflow <- 
-  workflow() %>% 
-  add_model(lr_mod) %>% 
-  add_recipe(hd_recipe)
-
-lr_hd_wflow
-```
-
-We use `fit` to train the model:
-
-```{r}
-lr_hd_fit <- 
-  lr_hd_wflow %>% 
-  fit(data = hd)
-
-lr_hd_fit
+  set_mode("classification") %>% 
+  fit(HeartDisease ~ ., data = hd)
 ```
 
 If we want to see the summary results of our model in a tidy way (i.e., a data frame with standard column names), we can use the `tidy()` function:
@@ -118,12 +90,7 @@ Let's convert the probabilities from the fitted GLM model into odds ratios (ORs)
 We can visualize the results using the [OddsPlotty](https://cran.r-project.org/web/packages/OddsPlotty/index.html) package and the `fit` list object from the model.
 
 ```{r, message = FALSE}
-lr_hd_fit2 <- logistic_reg() %>%
-  set_engine("glm") %>% 
-  set_mode("classification") %>% 
-  fit(HeartDisease ~ ., data = hd)
-
-tidy_oddsplot <- OddsPlotty::odds_plot(lr_hd_fit2$fit,
+tidy_oddsplot <- OddsPlotty::odds_plot(lr_hd_fit$fit,
                                        title = "Heart Disease Odds Plot",
                                        point_col = "#6b95ff",
                                        h_line_color = "red")
