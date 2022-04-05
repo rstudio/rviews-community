@@ -10,19 +10,19 @@ output: html_document
 
 ## MLDataR package motivation
 
-I love all things Machine Learning. The [MLDataR](https://github.com/StatsGary/MLDataR) package was driven from the need to have example datasets from across the healthcare system for machine learning problems. I have been a machine learning practitioner for over 9 years; however, I still find it interesting to explore new examples and datasets related to supervised machine learning classification and regression.
+I love all things Machine Learning. The [MLDataR](https://github.com/StatsGary/MLDataR) package was driven by the need to have example datasets across the healthcare system for machine learning problems. I have been a machine learning practitioner for over nine years; however, I still find it interesting to explore new examples and datasets related to supervised machine learning classification and regression.
 
-Because the package contains clinical examples and examples from real hospital systems, it allows the potential machine learning engineer to practice on all things related to supervised machine learning. 
+Because the package contains clinical examples and examples from real hospital systems, it allows the potential machine learning engineer to practice all things related to supervised machine learning. 
 
-In spite of the package originally being aimed at healthcare, I have expanded it to new territories and domains.
+Despite the package initially being aimed at healthcare, I have expanded it to new territories and domains.
 
 ## What does the package contain?
 
 The package contains several datasets for modelling. This is just a start and I am working with the [NHS-R community](https://nhsrcommunity.com/) to build it out even further. It is a sort of a call to arms to equip the package with even more examples of excellent datasets that can be used for machine learning. 
 
-**Diabetes disease prediction**  - This dataset contains key variables, gathered from hospital research and papers of the British Medical Journal, to identify the drivers behind diabetes disease. This dataset is useful for working with supervised classification machine learning problems or statistical problems. It uses past historic patient information to train and classify a model, with the aim to classify if a patient will have diabetes when they first present to the service.
+**Diabetes disease prediction**  - This dataset contains key variables, gathered from hospital research and papers in the British Medical Journal to identify the drivers behind diabetes disease. This dataset is useful for working with supervised classification machine learning problems or statistical problems. It uses past historical patient information to train and classify a model, with the aim to classify if a patient will have diabetes when they first present to the service.
 
-**Diabetes early on set** - Gathered by Asif Laldin, the package contributor from Gloucestershire Clinical Commissioning Group, this dataset contains information on the time between a prediabetes diagnosis and the onset of diabetes.
+**Diabetes early onset** - Gathered by Asif Laldin, the package contributor from Gloucestershire Clinical Commissioning Group, this dataset contains information on the time between a prediabetes diagnosis and the onset of diabetes.
 
 **Failing care home prediction** - Using measures from the NHS incident reporting databases, this dataset contains data to classify if a care home will fail based on results from retrospective inspections.
 
@@ -30,7 +30,7 @@ The package contains several datasets for modelling. This is just a start and I 
 
 **Thyroid disease classification** - This one has a personal effect on me, as I am a sufferer of this disease. This drove me to source this dataset from the Garavan Institute, based on a collection of studies this institute did around thyroid disease. This contains 28 independent or predictor variables of patients with or without the disease. It is also covered in the [vignette supporting this package](https://cran.r-project.org/web/packages/MLDataR/vignettes/MLDataR.html) and the supporting YouTube tutorial using tidymodels with various ML techniques. 
 
-**Counter Strike Global Offensive (CSGO)** - This dataset was kindly contributed by Asif Laldin, and is a detraction from the healthcare datasets in the package. I never intended the package to be purely healthcare ML datasets, and I have plans to include credit card fraud examples, tabular playground examples from Kaggle and many more, so watch this space...
+**Counter Strike Global Offensive (CSGO)** - This dataset was kindly contributed by Asif Laldin, and is a detraction from the healthcare datasets in the package. I never intended the package to be purely healthcare ML datasets, and I plan to include credit card fraud examples, tabular playground examples from Kaggle, and many more, so watch this space...
 
 ## Run a tidymodels routine with heart disease dataset
 
@@ -50,7 +50,7 @@ A glimpse into the dataset gives us a quick overview of our dataset. We have 918
 
 There are a couple of things we want to clean up. Notice that our outcome variable `HeartDisease` loads as a double variable. We want to convert it into a factor variable for our machine learning model.
 
-The variables `Sex`, `RestingECG`, and `Angina` are character variables. For creating models, it is better to have characters encoded as factors.
+The variables `Sex`, `RestingECG`, and `AnginaY` are character variables. For creating models, it is better to encode characters as factors.
 
 ```{r}
 hd <- heartdisease %>%
@@ -66,16 +66,10 @@ We use the recipes package to run the preprocessing steps for the model. These s
 
 With a logistic regression model, we want our predictors to be numeric. For factors like `RestingECG`, we convert them into "dummy variables" so that they are numeric. We can use `step_dummy()` to do this.
 
-We want to remove any variables with zero variance from our model. To do this, we run `step_zv()`.
-
-Finally, we want to normalize our predictors since they are on different scales from each other. The function `step_normalize()` helps us do this.
-
 ```{r}
 hd_recipe <-
   recipes::recipe(HeartDisease ~ ., data = hd) %>%
-  step_dummy(all_nominal(), -all_outcomes()) %>% 
-  recipes::step_zv(all_predictors()) %>% 
-  recipes::step_normalize(all_predictors())
+  step_dummy(all_nominal(), -all_outcomes())
 
 print(hd_recipe)
 ```
@@ -111,43 +105,61 @@ If we want to see the summary results of our model in a tidy way (i.e., a data f
 tidy(lr_hd_fit)
 ```
 
-Looking at the variables, we can see the statistically significant ones (p < 0.05): Cholesterol, FastingBS, MaxHR, HeartPeakReading, Sex, and Angina.
+We can see the statistically significant ones by pulling out those with p < 0.05: Male (SexM), cholesterol (Cholesterol), fasting blood sugar (FastingBS), maximum heart rate (MaxHR), having angina (AnginaY), and peak heart rate reading (HeartPeakReading).
 
-Let's convert the probabilities from the fitted GLM model into odds ratios. This will tell us, "for every change in 1 unit, what is the increase in odds of getting heart disease?"
+```{r}
+tidy(lr_hd_fit) %>% 
+  filter(p.value < 0.05) %>% 
+  pull(term)
+```
+
+Let's convert the probabilities from the fitted GLM model into odds ratios (ORs). An OR measures the association between an exposure and an outcome.^[Szumilas M. (2010). Explaining odds ratios. Journal of the Canadian Academy of Child and Adolescent Psychiatry = Journal de l'Academie canadienne de psychiatrie de l'enfant et de l'adolescent, 19(3), 227–229.] In this case, the OR represents the odds of heart disease will occur given a particular condition, compared to the odds of heart disease occurring in the absence of that condition. In order words, the ORs will tell us, "for every change in 1 unit, what is the increase in odds of getting heart disease?"
 
 We can visualize the results using the [OddsPlotty](https://cran.r-project.org/web/packages/OddsPlotty/index.html) package and the `fit` list object from the model.
 
-```{r}
+```{r, message = FALSE}
 lr_hd_fit2 <- logistic_reg() %>%
   set_engine("glm") %>% 
   set_mode("classification") %>% 
   fit(HeartDisease ~ ., data = hd)
 
-tidy_oddsplot <- OddsPlotty::odds_plot(lr_hd_fit$fit$fit$fit,
-                                       title = "Heart Disease Odds Plot",
-                                       point_col = "#6b95ff",
-                                       h_line_color = "red")
-tidy_oddsplot$odds_plot +
-  theme(legend.position = "none")
-
-```
-
-# for Gary - attempt 2:
-
-```{r}
 tidy_oddsplot <- OddsPlotty::odds_plot(lr_hd_fit2$fit,
                                        title = "Heart Disease Odds Plot",
                                        point_col = "#6b95ff",
                                        h_line_color = "red")
+
 tidy_oddsplot$odds_plot +
   theme(legend.position = "none")
 ```
+We can also pull out the odds ratio data:
 
-## Can I contribute my own dataset that I have worked on?
+```{r}
+tidy_oddsplot$odds_data
+```
 
-The answer is you can and I would greatly encourage it. To boot, you will become a package contributor. I am looking for ML datasets from across a wide range of industries and organisations. If you have an idea, and are interested, please submit a pull request to the [GitHub repository](https://github.com/StatsGary/MLDataR) and add your dataset.
 
-## Final Thoughts
+In this example, odds ratios are used to compare the relative odds of the occurrence of heart disease, given exposure to the variable of interest. Looking at the results from OddsPlotly:
+
+* Age, resting blood pressure (RestingBP), cholesterol (Cholesterol), and maximum heart rate (MaxHR) have an OR of 1, implying that these conditions do not affect the odds of heart disease.
+* Having angina (AnginaY), peak heart rate reading (HeartPeakReading), Male (SexM), and fasting blood sugar (FastingBS) have an OR of greater than 1, implying that these conditions are associated with higher odds of heart disease.
+* Normal resting electrocardiogram (RestingECGNormal) and normal ST segment of an electrocardiogram (RestingECGST) have an OR of less than 1, implying that these conditions are associated with lower odds of heart disease
+
+Note the confidence intervals, indicating the precision of the OR. The large CIs around RestingECGNormal and RestingECGST indicate a low level of precision of the OR. The small CIs around Age, RestingBP, Cholesterol, and MaxHRindicate a higher precision of the ORs.
+
+## Can I contribute my own dataset to MLDataR?
+
+The answer is you can, and I would greatly encourage it. To boot, you will become a package contributor. I am looking for ML datasets from across a wide range of industries and organisations.
+
+Suitable datasets for machine learning applications:
+
+* Have sufficient predictive variables for feature engineering
+* Have a nominal outcome variable
+* May have missing values
+* Consist of interesting features
+
+If you have an idea, please submit a pull request to the [GitHub repository](https://github.com/StatsGary/MLDataR) and add your dataset.
+
+## Final thoughts
 
 I have really enjoyed putting this package together and I hope you can use it to:
 
