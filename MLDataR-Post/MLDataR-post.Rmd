@@ -5,11 +5,11 @@ date: 2022-02-22
 summary: "MLDataR is a package containing real-world datasets for machine learning applications."
 output: html_document
 ---
-
+  
 *This is a guest post from Gary Hutson, lead of Machine Learning at Crisp Thinking, a company that provides AI solutions to moderate and detect offensive and abusive content online. His website is available at [https://hutsons-hacks.info/](https://hutsons-hacks.info/) and he can be reached through Twitter, [\@StatsGary](https://twitter.com/StatsGary).*
-
+  
 ## MLDataR package motivation
-
+  
 I love all things Machine Learning. The [MLDataR](https://github.com/StatsGary/MLDataR) package was driven by the need to have example datasets across the healthcare system for machine learning problems. I have been a machine learning practitioner for over nine years; however, I still find it interesting to explore new examples and datasets related to supervised machine learning classification and regression.
 
 Because the package contains clinical examples and examples from real hospital systems, it allows the potential machine learning engineer to practice all things related to supervised machine learning. 
@@ -42,6 +42,9 @@ library(MLDataR)
 library(dplyr)
 library(tidyr)
 library(tidymodels)
+library(data.table)
+library(ConfusionTableR)
+library(OddsPlotty)
 
 glimpse(MLDataR::heartdisease)
 ```
@@ -62,13 +65,36 @@ hd <- heartdisease %>%
 is.factor(hd$HeartDisease)
 ```
 
-We can create a `parsnip` model to build a workflow with the recipe we just created.
+For Machine Learning models, it is generally recommended to split your data into a training and testing set, or if you are using hyperparameter tuning and updating your model, a training / test and validation set. Other methods are available, such a K Fold Cross Validation, however we will stick to a basic training and testing split for the purposes of this demo. To do this, and to make sure that the results are repeatable, we will use the `set.seed(123)` value - which essentially says when we are randomly splitting this data, make sure that the random pattern is the same as the tutorial i.e. give me the same split as this blog:
+
+```{r splitting_data}
+set.seed(123)
+split_prop <- 0.8
+testing_prop <- 1-split_prop
+split <- rsample::initial_split(hd, prop = split_prop)
+training <- rsample::training(split)
+testing <- rsample::testing(split)
+
+# Print a custom message to show the samples involved
+training_message <- function(){
+  message(cat('The training set has: ', 
+              nrow(training), ' examples and the testing set has:',
+              nrow(testing),'.\nThis split has ',
+              paste0(format(100*split_prop),'%'), 
+              ' in the training set and ',paste0(format(100*testing_prop), '%'), 
+              ' in the testing set.',sep=''))
+}
+training_message()
+```
+
+We can fit a `parsnip` model to the training set and then we can evaluate the performance.
 
 ```{r}
 lr_hd_fit <- logistic_reg() %>%
   set_engine("glm") %>% 
   set_mode("classification") %>% 
-  fit(HeartDisease ~ ., data = hd)
+  fit(HeartDisease ~ ., data = training)
+
 ```
 
 If we want to see the summary results of our model in a tidy way (i.e., a data frame with standard column names), we can use the `tidy()` function:
@@ -95,23 +121,76 @@ tidy_oddsplot <- OddsPlotty::odds_plot(lr_hd_fit$fit,
                                        point_col = "#6b95ff",
                                        h_line_color = "red")
 
-tidy_oddsplot$odds_plot +
-  theme(legend.position = "none")
+tidy_oddsplot <- tidy_oddsplot$odds_plot +
+  theme(legend.position = "none") + 
+  geom_text(label=round(tidy_oddsplot$odds_plot$data$OR,digits=3),
+            hjust=-0.5, vjust=1, cex=2.8)
+
+tidy_oddsplot
 ```
 We can also pull out the odds ratio data:
 
 ```{r}
-tidy_oddsplot$odds_data
+tidy_oddsplot$data
 ```
-
-
 In this example, odds ratios are used to compare the relative odds of the occurrence of heart disease, given exposure to the variable of interest. Looking at the results from OddsPlotly:
 
-* Age, resting blood pressure (RestingBP), cholesterol (Cholesterol), and maximum heart rate (MaxHR) have an OR of 1, implying that these conditions do not affect the odds of heart disease.
-* Having angina (AnginaY), peak heart rate reading (HeartPeakReading), Male (SexM), and fasting blood sugar (FastingBS) have an OR of greater than 1, implying that these conditions are associated with higher odds of heart disease.
-* Normal resting electrocardiogram (RestingECGNormal) and normal ST segment of an electrocardiogram (RestingECGST) have an OR of less than 1, implying that these conditions are associated with lower odds of heart disease
+* Age, resting blood pressure (RestingBP), cholesterol (Cholesterol), and maximum heart rate (MaxHR) have an OR of 1, implying that these conditions have a high likelihood in terms of the odds of getting heart disease, over the other predictor variables
+* Having angina (AnginaY), peak heart rate reading (HeartPeakReading), Male (SexM), and fasting blood sugar (FastingBS) have an OR of greater than 1, implying that these conditions are associated with higher odds of heart disease. Angina is interesting, as it shows that for every increase in odds you have 4.677 times more likely to get heart disease, than the other measures.
+* Normal resting electrocardiogram (RestingECGNormal) and normal ST segment of an electrocardiogram (RestingECGST) have an OR of less than 1, implying that these conditions are associated with lower odds of heart disease, however due to the length of the error bars these conditions do not have as significant effect on heart disease, as those outlined with odds greater than 1. 
 
-Note the confidence intervals, indicating the precision of the OR. The large CIs around RestingECGNormal and RestingECGST indicate a low level of precision of the OR. The small CIs around Age, RestingBP, Cholesterol, and MaxHRindicate a higher precision of the ORs.
+Note the confidence intervals, indicating the precision of the OR. The large CIs around RestingECGNormal and RestingECGST indicate a low level of precision of the OR. The small CIs around Age, RestingBP, Cholesterol, and MaxHRindicate a higher precision of the ORs. This is normally due to the representation of the encoded items within the model i.e. the presence of an effect code
+
+I evaluate the outputs of logistic regression models by using the sampling probability values that the variables have been selected by chance (p-values) for the cut off, but then use the odds ratios of the effect of the predictor variable on my outcome, using the odds plots to make the final decision. 
+
+## Evaluating with testing set 
+
+The final way we can evaluate how well our model fits, before pushing this into production, would be to use a confusion matrix to collect how well our testing partition performs, against our training model predictions. Here we are trying to get a sense of, if we pushed this into the wild, how well would it do on unseen observations i.e. those new items that we don't have a label for, a label in this sense is whether someone has had heart disease, or not. 
+
+```{r confusiontabler}
+# Use our model to predict labels on to testing set
+predictions <- cbind(predict(lr_hd_fit, new_data = testing),
+                             testing)
+
+
+library(ConfusionTableR)
+# Create confusion matrix and output to record level for storage to monitor concept drift
+cm <- ConfusionTableR::binary_class_cm(predictions$.pred_class, 
+                                 predictions$HeartDisease,
+                                 mode='everything',
+                                 positive='1')
+
+```
+The next step is to expose the confusion matrix to view how well our model did on estimating the labels on the testing set:
+
+```{r evaluation}
+# Access the confusion matrix list object
+cm$confusion_matrix
+```
+
+Our model did relatively well. Picking apart some of the metrics:
+
+- True positives (`TP`) we have 92 correctly classified instances of heart failure
+- True negatives(`TN`) we have 70 cases classified as not having heart disease
+- False negatives (`FN`) we have 6 cases were our model said the patient didn't have heart disease and they did
+- False positives (`FP`) we have 16 cases were our model said a patient did have heart disease, but they actually didn't
+- Recall (also called Sensitivity) is 0.9388 meaning from all the patients that had heart disease - how many did we predict correctly - this equation is `Recall=TP / (TP + FN)`
+- Precision (also called Positive Predictive Value) is 0.8519 meaning from all the classes we predicted as positive, how many were actually positive. The equation here is `Precision=TP/(TP + FP)`.
+
+As I run many ML experiments I wanted a way to store this data into a record level extract. I actually stored this in a model metrics table on Postgres SQL database, but could be stored in any propriatory system. To get these metrics easily in record level, the package I created helps you do that with ease:
+
+```{r visual}
+# As we used the binary record level cm method, this stores the model data down
+record_level_cm <- cm$record_level_cm %>% 
+  dplyr::mutate(user_name=Sys.getenv("USERNAME"))
+glimpse(record_level_cm)
+
+#Export to csv
+data.table::fwrite(record_level_cm, file='heart_disease_cm_record_level.csv')
+
+```
+
+If you were happy with your model now, you could put this into production. 
 
 ## Can I contribute my own dataset to MLDataR?
 
